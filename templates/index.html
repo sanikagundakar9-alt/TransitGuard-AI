@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transit Guardian AI</title>
+    
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=1.1">
+
+    <style>
+        body {
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: #1e293b;
+            padding: 2rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 { color: #38bdf8; margin-bottom: 20px; }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #334155;
+            background: #0f172a;
+            color: white;
+            box-sizing: border-box;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background: #0ea5e9;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        #status {
+            margin-top: 20px;
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid #38bdf8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚍 Transit Guardian AI</h1>
+        
+        <div style="text-align: left;">
+            <label>Destination Latitude:</label>
+            <input type="number" id="destLat" value="18.5204" step="0.0001">
+            
+            <label>Destination Longitude:</label>
+            <input type="number" id="destLon" value="73.8567" step="0.0001">
+            
+            <label>Alarm Radius (km):</label>
+            <input type="number" id="radius" value="0.5" step="0.1">
+        </div>
+
+        <button onclick="startTracking()">START MONITORING</button>
+
+        <div id="status">
+            <p id="dist">Distance: -- km</p>
+            <p id="eta">ETA: -- mins</p>
+        </div>
+    </div>
+
+    <audio id="alarm" src="{{ url_for('static', filename='alert.mp3') }}"></audio>
+
+    <script>
+        function startTracking() {
+            if (navigator.geolocation) {
+                navigator.geolocation.watchPosition(update, error, {
+                    enableHighAccuracy: true
+                });
+                alert("Monitoring Started!");
+            } else {
+                alert("Geolocation not supported!");
+            }
+        }
+
+        function error(err) {
+            alert("Error: Please enable GPS/Location access.");
+        }
+
+        function update(pos) {
+            const lat1 = pos.coords.latitude;
+            const lon1 = pos.coords.longitude;
+            const lat2 = document.getElementById('destLat').value;
+            const lon2 = document.getElementById('destLon').value;
+            const radius = document.getElementById('radius').value;
+
+            // Distance calculation logic
+            const R = 6371;
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                      Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            const d = R * c;
+
+            document.getElementById('dist').innerText = `Distance: ${d.toFixed(2)} km`;
+
+            // Call Backend for ETA
+            fetch('/predict_eta', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({distance: d})
+            })
+            .then(r => r.json())
+            .then(res => {
+                document.getElementById('eta').innerText = `ETA: ${res.eta} mins`;
+            });
+
+            // Trigger Alarm
+            if (d <= radius) {
+                document.getElementById('alarm').play();
+                alert("WAKE UP! YOUR STOP IS HERE!");
+            }
+        }
+    </script>
+</body>
+</html>
