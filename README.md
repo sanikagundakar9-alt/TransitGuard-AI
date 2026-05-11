@@ -11,7 +11,7 @@
 - **Proximity Alarm:** Automatically plays an alert sound when you enter the pre-set radius.
 - **Modern Dark UI:** Responsive and sleek interface for mobile and desktop users.
 - **Customizable Alerts:** Users can set their own destination and alarm radius.
-<img width="500" height="400" alt="image" src="https://github.com/user-attachments/assets/b4fc5dc9-a117-49d3-aed2-bbbe86ca3e0f" />
+<img width="800" height="600" alt="image" src="https://github.com/user-attachments/assets/b4fc5dc9-a117-49d3-aed2-bbbe86ca3e0f" />
 
 ---
 
