@@ -73,5 +73,5 @@ Open: `http://127.0.0.1:5000`
 
 ## 👨‍💻 Contributor
 
-* **Sanika Gundakar** -
+* **Sanika Gundakar** - https://github.com/sanikagundakar9-alt
 
